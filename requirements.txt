@@ -1,0 +1,16 @@
+# ── Core framework ───────────────────────────────────
+Flask==3.0.3
+Werkzeug==3.0.3
+
+# ── Database ORM ─────────────────────────────────────
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.30
+
+# ── Authentication ────────────────────────────────────
+Flask-Login==0.6.3
+
+# ── Environment variables ─────────────────────────────
+python-dotenv==1.0.1
+
+# ── Production WSGI server ────────────────────────────
+gunicorn==22.0.0

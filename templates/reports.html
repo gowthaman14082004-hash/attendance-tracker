@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}Reports — V Secure Technologies{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1>Reports &amp; Analytics</h1>
+      <p>Monthly attendance &amp; field activity summary</p>
+    </div>
+    <!-- Month filter -->
+    <form method="GET" class="inline-form">
+      <label for="monthPicker" class="sr-only">Select month</label>
+      <input
+        type="month"
+        id="monthPicker"
+        name="month"
+        value="{{ filter_date.strftime('%Y-%m') }}"
+        onchange="this.form.submit()"
+        class="input-date"
+      >
+    </form>
+  </div>
+</div>
+
+<!-- ── Summary Stats ──────────────────────────── -->
+{% set total_present  = summary | sum(attribute='present')  %}
+{% set total_absent   = summary | sum(attribute='absent')   %}
+{% set total_leave    = summary | sum(attribute='leave')    %}
+{% set total_half     = summary | sum(attribute='half_day') %}
+
+<div class="stats-grid stats-grid-4">
+  <div class="stat-card green">
+    <div class="stat-label">Total Present</div>
+    <div class="stat-value">{{ total_present }}</div>
+    <div class="stat-sub">Days across all staff</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">Total Absent</div>
+    <div class="stat-value">{{ total_absent }}</div>
+    <div class="stat-sub">Days across all staff</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-label">On Leave</div>
+    <div class="stat-value">{{ total_leave }}</div>
+    <div class="stat-sub">Days across all staff</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">Site Visits</div>
+    <div class="stat-value">{{ visits | length }}</div>
+    <div class="stat-sub">{{ filter_date.strftime('%B %Y') }}</div>
+  </div>
+</div>
+
+<!-- ── Attendance Summary Table ──────────────── -->
+<div class="card mb-4">
+  <div class="card-head">
+    <div class="card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Attendance Summary — {{ filter_date.strftime('%B %Y') }}
+    </div>
+  </div>
+  <div class="card-body p0">
+    {% if summary %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th class="text-center">Present</th>
+            <th class="text-center">Absent</th>
+            <th class="text-center">Leave</th>
+            <th class="text-center">Half Day</th>
+            <th class="text-center">Total Days</th>
+            <th>Attendance %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in summary %}
+          {% set pct = ((row.present + row.half_day * 0.5) / row.total * 100) | round(1) if row.total > 0 else 0 %}
+          <tr>
+            <td>
+              <div class="emp-cell">
+                <div class="mini-avatar">{{ row.employee.initials }}</div>
+                <span class="fw-500">{{ row.employee.name }}</span>
+              </div>
+            </td>
+            <td class="text-dim">{{ row.employee.department }}</td>
+            <td class="text-center"><span class="badge badge-present">{{ row.present }}</span></td>
+            <td class="text-center"><span class="badge badge-absent">{{ row.absent }}</span></td>
+            <td class="text-center"><span class="badge badge-leave">{{ row.leave }}</span></td>
+            <td class="text-center"><span class="badge badge-half-day">{{ row.half_day }}</span></td>
+            <td class="text-center text-dim">{{ row.total }}</td>
+            <td>
+              <div class="progress-wrap">
+                <div class="progress-bar" style="width: {{ pct }}%"
+                     title="{{ pct }}%"
+                     class="{{ 'progress-good' if pct >= 80 else ('progress-mid' if pct >= 60 else 'progress-low') }}">
+                </div>
+                <span class="progress-label">{{ pct }}%</span>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <p>No attendance data for {{ filter_date.strftime('%B %Y') }}.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Field Engineer Site Visits ─────────────── -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Field Engineer Visits — {{ filter_date.strftime('%B %Y') }}
+    </div>
+    <span class="badge badge-teal">{{ visits | length }} visit{{ 's' if visits | length != 1 }}</span>
+  </div>
+  <div class="card-body p0">
+    {% if visits %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Engineer</th>
+            <th>Site</th>
+            <th>Location</th>
+            <th>Arrived</th>
+            <th>Left</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in visits %}
+          <tr>
+            <td class="mono text-sm">{{ v.date.strftime('%d %b') }}</td>
+            <td>
+              <div class="emp-cell">
+                <div class="mini-avatar teal">{{ v.engineer.initials }}</div>
+                <span>{{ v.engineer.name }}</span>
+              </div>
+            </td>
+            <td class="fw-500">{{ v.site_name }}</td>
+            <td class="text-dim text-sm">{{ v.location or '—' }}</td>
+            <td>{{ format_time(v.arrival_time) }}</td>
+            <td>{{ format_time(v.departure_time) }}</td>
+            <td class="text-sm text-dim">{{ v.purpose or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📍</div>
+        <p>No site visits recorded for {{ filter_date.strftime('%B %Y') }}.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

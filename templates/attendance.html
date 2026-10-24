@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Attendance — V Secure Technologies{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1>Attendance Management</h1>
+      <p>Record and manage daily attendance</p>
+    </div>
+    <!-- Date filter -->
+    <form method="GET" class="inline-form">
+      <input type="date" name="date" value="{{ view_date.isoformat() }}" onchange="this.form.submit()" class="input-date">
+    </form>
+  </div>
+</div>
+
+<div class="two-col">
+
+  <!-- ── Mark Attendance Form ──────────────────── -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Mark Attendance
+      </div>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('attendance') }}">
+
+        <div class="form-group">
+          <label for="employee_id">Employee</label>
+          <select name="employee_id" id="employee_id" required>
+            <option value="">— Select Employee —</option>
+            {% for emp in employees %}
+            <option value="{{ emp.id }}">{{ emp.name }} — {{ emp.department }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="check_in">Check-in Time</label>
+            <input type="time" name="check_in" id="check_in">
+          </div>
+          <div class="form-group">
+            <label for="check_out">Check-out Time</label>
+            <input type="time" name="check_out" id="check_out">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select name="status" id="status">
+            <option value="Present">✅ Present</option>
+            <option value="Absent">❌ Absent</option>
+            <option value="Leave">🌴 Leave</option>
+            <option value="Half Day">🌓 Half Day</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes <span class="optional">(optional)</span></label>
+          <input type="text" name="notes" id="notes" placeholder="e.g. Work from home, Medical leave…">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/></svg>
+          Save Attendance
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Today's Records ───────────────────────── -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ view_date.strftime('%d %B %Y') }}
+      </div>
+      <span class="badge badge-blue">{{ records|length }} record{{ 's' if records|length != 1 }}</span>
+    </div>
+    <div class="card-body p0">
+      {% if records %}
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Hours</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            <tr>
+              <td>
+                <div class="emp-cell">
+                  <div class="mini-avatar">{{ r.employee.initials }}</div>
+                  <div>
+                    <div class="fw-500">{{ r.employee.name }}</div>
+                    <div class="text-dim text-sm">{{ r.employee.department }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ format_time(r.check_in) }}</td>
+              <td>{{ format_time(r.check_out) }}</td>
+              <td class="mono">{{ r.hours_worked }}</td>
+              <td><span class="badge badge-{{ r.status | lower | replace(' ', '-') }}">{{ r.status }}</span></td>
+              <td>
+                <form method="POST" action="{{ url_for('delete_attendance', record_id=r.id) }}" onsubmit="return confirm('Delete this record?')">
+                  <button type="submit" class="btn-icon btn-icon-red" title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <p>No attendance records for {{ view_date.strftime('%d %B %Y') }}.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

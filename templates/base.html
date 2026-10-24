@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="V Secure Technologies – Attendance & Field Tracking System">
+  <title>{% block title %}V Secure Technologies{% endblock %}</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- ── Navigation ─────────────────────────────── -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="{{ url_for('dashboard') }}" class="nav-brand" aria-label="V Secure Technologies home">
+      V&nbsp;<span>Secure</span>&nbsp;Technologies
+    </a>
+
+    <!-- Hamburger (mobile) -->
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navMenu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-menu" id="navMenu">
+      <a href="{{ url_for('dashboard') }}"  class="nav-tab {% if request.endpoint == 'dashboard'  %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="{{ url_for('attendance') }}" class="nav-tab {% if request.endpoint == 'attendance' %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Attendance
+      </a>
+      <a href="{{ url_for('employees') }}" class="nav-tab {% if request.endpoint == 'employees'  %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Employees
+      </a>
+      <a href="{{ url_for('engineers') }}" class="nav-tab {% if request.endpoint == 'engineers'  %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Field Engineers
+      </a>
+      <a href="{{ url_for('reports') }}"   class="nav-tab {% if request.endpoint == 'reports'    %}active{% endif %}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports
+      </a>
+    </div>
+
+    <div class="nav-user">
+      <div class="avatar" aria-hidden="true">{{ current_user.username[0].upper() }}</div>
+      <span class="nav-username">{{ current_user.username }}</span>
+      <a href="{{ url_for('logout') }}" class="btn-logout" title="Sign out">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Flash Messages ──────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container" aria-live="polite">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}" role="alert">
+          <span>{{ message }}</span>
+          <button class="flash-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ── Page Content ───────────────────────────── -->
+<main class="main-content" id="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ── Footer ─────────────────────────────────── -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner">
+    <span>&copy; {{ today().year }} V Secure Technologies</span>
+    <span class="footer-sep">·</span>
+    <span>Attendance &amp; Field Tracking System</span>
+    <span class="footer-sep">·</span>
+    <span>v1.0.0</span>
+  </div>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  const toggle = document.getElementById('navToggle');
+  const menu   = document.getElementById('navMenu');
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open);
+    });
+  }
+
+  // Auto-dismiss flash messages after 5 s
+  document.querySelectorAll('.flash').forEach(el => {
+    setTimeout(() => el.remove(), 5000);
+  });
+</script>
+
+</body>
+</html>

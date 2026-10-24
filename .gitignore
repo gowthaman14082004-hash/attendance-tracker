@@ -1,0 +1,57 @@
+# ── Python ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ── Virtual environments ─────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Database (never commit!) ─────────────────────
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# ── Environment / secrets ────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ── IDEs ────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# ── OS ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ────────────────────────────────────────
+*.log
+logs/
+
+# ── Testing / Coverage ───────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# ── Flask ────────────────────────────────────────
+flask_session/
